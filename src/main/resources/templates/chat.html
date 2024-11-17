@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>실시간 채팅</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .invite-code-container {
+            text-align: center; /* 중앙 정렬 */
+            margin-bottom: 20px; /* 아래쪽 여백 */
+        }
+
+        h3 {
+            text-align: center; /* 가운데 정렬 */
+            color: #555;
+            margin: 10px 0; /* 위아래 여백 설정 */
+        }
+
+        #messages {
+            background: #fff;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 600px;
+            height: 300px;
+            overflow-y: auto;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .message {
+            margin-bottom: 15px;
+        }
+
+        .message strong {
+            color: #007bff;
+        }
+
+        .message span {
+            font-size: 0.8em;
+            color: #888;
+            margin-left: 10px;
+        }
+
+        form {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        input[type="text"] {
+            width: 80%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        button, .copy-button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover, .copy-button:hover {
+            background-color: #0056b3;
+        }
+
+        .copy-button {
+            padding: 8px 13px; /* 버튼 크기 조정 */
+            margin-left: 10px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #888;
+            font-size: 0.8em;
+            width: 100%; /* 전체 너비 사용 */
+            position: absolute; /* 페이지 하단에 고정 */
+            bottom: 10px; /* 하단 여백 */
+        }
+
+        .header {
+            background-color: #fff; /* 흰색 배경 */
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between; /* 왼쪽과 오른쪽 정렬 */
+            align-items: center; /* 수직 정렬 */
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            color: #333;
+        }
+
+        .button-container {
+            display: flex; /* 버튼들을 가로로 배치 */
+        }
+
+        .link {
+            color: #007bff; /* 링크 색상 */
+            text-decoration: none; /* 밑줄 제거 */
+            font-size: 16px;
+            margin-left: 10px; /* 링크 간격 */
+        }
+
+        .link:hover {
+            text-decoration: underline; /* 호버 시 밑줄 추가 */
+        }
+
+    </style>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.0/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+    <script th:inline="javascript">
+        let stompClient = null;
+
+        const accessToken = localStorage.getItem('accessToken');
+        const refreshToken = localStorage.getItem('refreshToken');
+        const chatRoomId = /*[[${room.id}]]*/ ''; // uuid아니고 인덱스 id임
+        const chatRoomUuid = /*[[${room.uuid}]]*/ '';
+        let username = '';
+
+        function connect() {
+            console.log("roomId: ", chatRoomId);
+            if (!chatRoomId) {
+                console.log("roomId가 비어있습니다.");
+                return;
+            }
+
+            console.log("** 연결시도중.. **");
+            const socket = new SockJS('/ws/chat');
+            console.log("** sockJs로 endPoint 연결됨 **");
+
+            stompClient = Stomp.over(socket);
+            console.log("** stomp 클라이언트 생성됨 **");
+
+            stompClient.connect({}, function (frame) {
+                console.log("frame : " + frame);
+                stompClient.subscribe('/topic/' + chatRoomId, function (message) {
+                    console.log("{} message : {}", chatRoomId, message);
+                    showMessage(message);
+                });
+                console.log("** 서버에 연결됨 **");
+            }, function (error) {
+                console.error("연결 해제: ", error);
+            });
+        }
+
+        function showMessage(message) {
+            const messagesDiv = document.getElementById("messages");
+            const parsedMessage = JSON.parse(message.body);
+            messagesDiv.innerHTML += `<div class="message"><strong>${parsedMessage.username}</strong>: ${parsedMessage.message} <span>${new Date(parsedMessage.timestamp).toLocaleString()}</span></div>`;
+            messagesDiv.scrollTop = messagesDiv.scrollHeight; // 자동 스크롤
+        }
+
+        function getMessages() {
+            fetch(`/chat/message?id=${chatRoomUuid}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + accessToken
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("채팅 기록을 불러오는 데 실패했습니다.");
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const messagesDiv = document.getElementById("messages");
+                    data.forEach(chatMessage => {
+                        messagesDiv.innerHTML += `<div class="message"><strong>${chatMessage.username}</strong>: ${chatMessage.message} <span>${new Date(chatMessage.timestamp).toLocaleString()}</span></div>`;
+                    });
+                    messagesDiv.scrollTop = messagesDiv.scrollHeight; // 자동 스크롤
+                })
+                .catch(error => {
+                    console.error('Error: ', error);
+                    // alert("채팅 기록을 불러오는 중 오류가 발생했습니다.");
+                });
+        }
+
+        function submitBtn() {
+            const messageInput = document.getElementById("message").value;
+
+            if (!messageInput.trim()) {
+                alert("메시지를 입력하세요.");
+                return;
+            }
+
+            if (stompClient) {
+                stompClient.send("/app/chat", {},
+                    JSON.stringify({
+                        chatRoomId: chatRoomId,
+                        messageType: "TALK",
+                        token: accessToken,
+                        username: username,
+                        message: messageInput
+                    })
+                );
+                document.getElementById("message").value = "";
+            } else {
+                console.error("STOMP 연결 안됨");
+            }
+        }
+
+        function getUserInfo() {
+            fetch('/user/info', {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + accessToken
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        window.location.href = '/login';
+                        throw new Error("로그인 후 이용해주세요.");
+                    }
+                    return response.json();
+                })
+                .then(user => {
+                    username = user.username;
+                })
+                .catch(error => {
+                    console.error('Error: ', error);
+                    alert("로그인 후 이용해주세요.");
+                });
+        }
+
+        function copyToClipboard() {
+            navigator.clipboard.writeText(chatRoomUuid).then(() => {
+                alert("초대코드가 클립보드에 복사되었습니다.");
+            }).catch(err => {
+                console.error('복사 실패:', err);
+            });
+        }
+
+        function getToChatList() {
+            window.location.href = `/chat/list?accessToken=${accessToken}`;
+        }
+
+        function logout() {
+            fetch("/api/logout", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + accessToken
+                },
+                body: JSON.stringify({ refreshToken: refreshToken })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        // 로그아웃 성공 시 토큰 삭제 및 로그인 페이지로 이동
+                        localStorage.removeItem('refreshToken');
+                        localStorage.removeItem('accessToken');
+                        window.location.href = '/login';
+                        alert("로그아웃 되었습니다.");
+                    } else {
+                        throw new Error('로그아웃 실패');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('로그아웃 중 오류가 발생했습니다');
+                    window.location.href = '/login';
+                });
+        }
+
+        window.onload = function () {
+            getUserInfo();
+            connect();
+            getMessages();
+        }
+    </script>
+</head>
+
+<body>
+<div class="header">
+    <h1>CHAT</h1>
+    <div class="button-container">
+        <a class="link" href="#" onclick="getToChatList()">채팅목록</a>
+        <a class="link" href="#" onclick="logout()">로그아웃</a>
+    </div>
+</div>
+
+<h3 th:text="'방 제목: ' + ${room.roomName}"></h3>
+<div class="invite-code-container">
+    <h3 th:text="'초대코드: ' + ${room.uuid}"></h3>
+    <button class="copy-button" onclick="copyToClipboard()">복사</button>
+</div>
+
+<div id="messages"></div>
+
+<form onsubmit="event.preventDefault(); submitBtn();">
+    <input type="text" id="message" placeholder="메시지를 입력하세요." required>
+    <button type="submit"><i class="fas fa-paper-plane"></i> 전송</button>
+</form>
+
+<div class="footer">
+    &copy; 실시간 채팅 시스템
+</div>
+</body>
+</html>

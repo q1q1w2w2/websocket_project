@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원가입</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%; /* 전체 높이를 100%로 설정 */
+            margin: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e9ecef;
+            display: flex;
+            flex-direction: column; /* 세로 방향으로 정렬 */
+            justify-content: center; /* 중앙 정렬 */
+            align-items: center;
+        }
+
+        .register-container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            width: 350px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            border-color: #28a745;
+            outline: none;
+        }
+
+        .form-group button {
+            width: 100%;
+            padding: 12px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .form-group button:hover {
+            background-color: #218838;
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .register-link a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #888;
+            font-size: 0.8em;
+            width: 100%; /* 전체 너비 사용 */
+            position: absolute; /* 페이지 하단에 고정 */
+            bottom: 10px; /* 하단 여백 */
+        }
+    </style>
+</head>
+<body>
+
+<div class="register-container">
+    <h2>회원가입</h2>
+    <form id="registrationForm"> <!-- action과 method 속성 제거 -->
+        <div class="form-group">
+            <label for="username">닉네임</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        <div class="form-group">
+            <label for="loginId">아이디</label>
+            <input type="text" id="loginId" name="loginId" required>
+        </div>
+        <div class="form-group">
+            <label for="password">비밀번호</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+
+        <div class="form-group">
+            <button type="submit">회원가입</button>
+        </div>
+    </form>
+    <div class="register-link">
+        <p>이미 계정이 있으신가요? <a href="/login">로그인</a></p>
+    </div>
+</div>
+
+<div class="footer">
+    &copy; 실시간 채팅 시스템
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('registrationForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // 기본 폼 제출 방지
+
+            // 입력 필드 값 가져오기
+            const username = document.getElementById('username').value;
+            const loginId = document.getElementById('loginId').value;
+            const password = document.getElementById('password').value;
+
+            // JSON 형태로 데이터 생성
+            const data = {
+                username: username,
+                loginId: loginId,
+                password: password
+            };
+
+            fetch('/api/join', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data) // JSON 문자열로 변환
+            })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json(); // 응답 JSON 파싱
+                    }
+                    throw new Error('회원가입 실패: ' + response.statusText); // 구체적인 오류 메시지
+                })
+                .then(data => {
+                    alert('회원가입 성공!');
+                    window.location.href = '/login'; // 로그인 페이지로 이동
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('회원가입 중 오류가 발생했습니다: ' + error.message); // 구체적인 오류 메시지
+                });
+        });
+    });
+</script>
+
+</body>
+</html>
