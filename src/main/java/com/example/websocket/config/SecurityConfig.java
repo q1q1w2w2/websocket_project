@@ -73,6 +73,8 @@ public class SecurityConfig {
                                 .requestMatchers("/", "/api/login", "/api/join", "/login", "/join").permitAll()
                                 .requestMatchers("/chat", "/chat/list").permitAll()
                                 .requestMatchers("/ws/chat/**").permitAll()
+                                .requestMatchers("/gpt/chat").permitAll()
+                                .requestMatchers("/draw/**").permitAll()
                                 .anyRequest().authenticated()
                 )
 

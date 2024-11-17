@@ -6,5 +6,5 @@ import lombok.Setter;
 @Getter
 @Setter
 public class JoinRoomDto {
-    private String roomId;
+    private String roomId; // uuid 임
 }

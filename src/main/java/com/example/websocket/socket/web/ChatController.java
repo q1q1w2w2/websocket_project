@@ -21,11 +21,9 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.example.websocket.token.JwtFilter.*;
 
@@ -37,6 +35,7 @@ public class ChatController {
 
     private final MessageService messageService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final RestTemplate restTemplate;
 
     private final ChatRoomService chatRoomService;
     private final UserService userService;
@@ -56,23 +55,23 @@ public class ChatController {
 
     // 채팅방 목록(로그인 성공 시 여기로 이동됨)
     @GetMapping("/chat/list")
-    public String getChatListPage(@RequestParam(required = false) String accessToken, Model model) throws Exception {
-        if (accessToken == null || accessToken.isEmpty()) {
-            // accessToken이 없는 경우 로그인 페이지로 리다이렉트
-            return "redirect:/login";
-        }
-
+    public String getChatListPage(@RequestParam(required = false) String accessToken, Model model) {
         try {
+            if (accessToken == null || accessToken.isEmpty()) {
+                return "redirect:/login";
+            }
+
             User user = userService.getUserByToken(accessToken);
             List<ChatRoom> chatRooms = chatRoomService.findByUserLoginId(user.getLoginId());
-            log.info("chat rooms: {}", chatRooms);
+
             model.addAttribute("chatRooms", chatRooms);
             model.addAttribute("user", user);
+
+            return "chatRoomList";
+
         } catch (Exception e) {
             return "redirect:/login";
         }
-
-        return "chatRoomList";
     }
 
     // 클라이언트가 /app/chat로 메시지 보낼 때 호출
@@ -120,12 +119,35 @@ public class ChatController {
 
         ArrayList<ChatMessageResponseDto> response = new ArrayList<>();
         for (Message message : messageList) {
-            // todo n+1문제 발생할것임 -> 메시지 리스트 불러올 때 같이 불러오도록 수정 -> 같은 데이터면 쿼리 안나가는 것 같은데 그럼 상관없긴함
             User messageUser = userService.findById(message.getSenderId());
             ChatMessageResponseDto dto = new ChatMessageResponseDto(message, messageUser);
             response.add(dto);
         }
 
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/chat/help")
+    public ResponseEntity gptForHelp(@RequestBody JoinRoomDto dto) {
+        ChatRoom room = chatRoomService.findByUuid(dto.getRoomId());
+        // 해당 room의 메시지 중 가장 마지막 메시지 불러오기
+        List<Message> messageList = messageService.findByChatRoomId(room.getId());
+//        Message lastMessage = messageList.get(messageList.size() - 1);
+
+        if (messageList.size() < 5) {
+            throw new RuntimeException("최소 5번의 대화 이후에 이용할 수 있습니다.");
+        }
+        // 맥락 파악을 위해 이전 대화들 가져오기
+        ArrayList<String> list = new ArrayList<>();
+        for (int i = messageList.size() - 5; i < messageList.size(); i++) {
+            list.add(messageList.get(i).getMessage());
+        }
+        String messages = String.join(", ", list);
+        log.info("messages: {}", messages);
+
+        String answer = restTemplate.getForObject("http://localhost:8082/gpt/chat?prompt=" + messages, String.class);
+        log.info("answer: {}", answer);
+
+        return ResponseEntity.ok(Map.of("answer", answer));
     }
 }
