@@ -30,15 +30,19 @@ public class UserService {
     @Transactional
     public User join(JoinDto dto) {
 
+        // 아이디 중복 검증
         if (userRepository.findByLoginId(dto.getLoginId()).isPresent()) {
-            throw new UserAlreadyExistException();
+            throw new UserAlreadyExistException(); // 기본 메시지 반환됨
+        }
+        // username 중복 검증
+        if (userRepository.findByUsername(dto.getUsername()).isPresent()) {
+            throw new UserAlreadyExistException("이미 존재하는 사용자명입니다.");
         }
 
         User user = User.builder()
                 .nickname(dto.getUsername())
                 .loginId(dto.getLoginId())
                 .password(passwordEncoder.encode(dto.getPassword()))
-                .createdAt(LocalDateTime.now())
                 .build();
 
         return userRepository.save(user);

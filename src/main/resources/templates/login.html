@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>로그인</title>
+    <link rel="stylesheet" href="/css/styles.css">
     <style>
         * {
             box-sizing: border-box;
@@ -56,14 +57,14 @@
         }
 
         .form-group input:focus {
-            border-color: #28a745;
+            border-color: var(--primary-color); /* 주 색상 사용 */
             outline: none;
         }
 
         .form-group button {
             width: 100%;
             padding: 12px;
-            background-color: #28a745;
+            background-color: var(--primary-color); /* 주 색상 사용 */
             color: white;
             border: none;
             border-radius: 4px;
@@ -73,7 +74,7 @@
         }
 
         .form-group button:hover {
-            background-color: #218838;
+            background-color: var(--hover-color); /* 호버 색상 사용 */
         }
 
         .register-link {
@@ -88,16 +89,6 @@
 
         .register-link a:hover {
             text-decoration: underline;
-        }
-
-        .footer {
-            text-align: center;
-            margin-top: 20px;
-            color: #888;
-            font-size: 0.8em;
-            width: 100%; /* 전체 너비 사용 */
-            position: absolute; /* 페이지 하단에 고정 */
-            bottom: 10px; /* 하단 여백 */
         }
     </style>
 </head>
@@ -123,20 +114,18 @@
     </div>
 </div>
 
-<div class="footer">
-    &copy; 실시간 채팅 시스템
-</div>
+<!-- footer -->
+<div th:replace="fragment/footer :: footer"></div>
 
+<!-- js -->
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('loginForm').addEventListener('submit', function (event) {
             event.preventDefault(); // 기본 폼 제출 방지
 
-            // 입력 필드 값 가져오기
             const loginId = document.getElementById('loginId').value;
             const password = document.getElementById('password').value;
 
-            // JSON 형태로 데이터 생성
             const data = {
                 loginId: loginId,
                 password: password
@@ -147,23 +136,21 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(data) // JSON 문자열로 변환
+                body: JSON.stringify(data)
             })
                 .then(response => {
                     if (response.ok) {
-                        return response.json(); // 응답 JSON 파싱
+                        return response.json();
                     }
                     return response.json().then((e) => {
-                        throw new Error(e.message); // 로그인 실패
+                        throw new Error(e.message);
                     });
                 })
                 .then(data => {
-                    // accessToken과 refreshToken 저장
                     localStorage.setItem('accessToken', data.accessToken);
                     localStorage.setItem('refreshToken', data.refreshToken);
 
-                    // 채팅 목록 페이지로 이동, accessToken을 URL 파라미터로 전달
-                    window.location.href = '/chat/list?accessToken=' + data.accessToken;
+                    window.location.href = '/chat/list';
                 })
                 .catch(error => {
                     console.error(error);

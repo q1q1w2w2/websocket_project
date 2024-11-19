@@ -19,7 +19,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UserAlreadyExistException.class)
     public ResponseEntity<ExceptionResponseDto> handleUserAlreadyExistException(UserAlreadyExistException e) {
-        return createErrorResponse(e, CONFLICT, "이미 존재하는 계정입니다.");
+        return createErrorResponse(e, CONFLICT, e.getMessage());
     }
 
     @ExceptionHandler(UserNotFoundException.class)

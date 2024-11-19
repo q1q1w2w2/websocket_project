@@ -13,6 +13,6 @@ public class UserResponseDto {
 
     public UserResponseDto(User user) {
         this.loginId = user.getLoginId();
-        this.username = user.getNickname();
+        this.username = user.getUsername();
     }
 }

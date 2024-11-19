@@ -4,6 +4,7 @@ import com.example.websocket.auth.dto.LoginDto;
 import com.example.websocket.auth.dto.RefreshTokenDto;
 import com.example.websocket.auth.service.AuthService;
 import com.example.websocket.token.JwtFilter;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -35,7 +36,7 @@ public class AuthController {
 
     // 로그인
     @PostMapping("/api/login")
-    public ResponseEntity<Map<String, String>> login(@Validated @RequestBody LoginDto dto) throws Exception {
+    public ResponseEntity<Map<String, String>> login(@Validated @RequestBody LoginDto dto, HttpSession session) throws Exception {
         Map<String, String> token = authService.login(dto);
         String accessToken = token.get("accessToken");
         String refreshToken = token.get("refreshToken");
@@ -44,6 +45,9 @@ public class AuthController {
         response.put("accessToken", accessToken);
         response.put("refreshToken", refreshToken);
 
+        // todo jwt와 session 복합 사용. 좀 더 알아보기
+        session.setAttribute("accessToken", accessToken);
+
         return ResponseEntity.ok(response);
     }
 
@@ -51,12 +55,15 @@ public class AuthController {
     @PostMapping("/api/logout")
     public ResponseEntity<Map> logout(
             @RequestHeader(AUTHORIZATION_HEADER) String authorization,
-            @Validated @RequestBody RefreshTokenDto dto
+            @Validated @RequestBody RefreshTokenDto dto,
+            HttpSession session
     ) throws Exception {
         String refreshToken = dto.getRefreshToken();
         String accessToken = authorization.substring(BEARER_PREFIX.length());
 
         authService.logout(refreshToken, accessToken);
+
+        session.removeAttribute("accessToken");
         return ResponseEntity.ok(Map.of("message", "로그아웃 되었습니다."));
     }
 }

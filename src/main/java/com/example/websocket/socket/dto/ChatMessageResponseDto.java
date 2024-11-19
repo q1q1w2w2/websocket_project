@@ -18,7 +18,7 @@ public class ChatMessageResponseDto {
 
     public ChatMessageResponseDto(Message message, User user) {
         this.senderId = message.getSenderId();
-        this.username = user.getNickname();
+        this.username = user.getUsername();
         this.message = message.getMessage();
         this.timestamp = message.getTimestamp();
     }

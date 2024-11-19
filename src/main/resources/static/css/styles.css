@@ -1,0 +1,77 @@
+:root {
+    --primary-color: #007bff; /* 주 색상 - 밝은 파란색 */
+    --secondary-color: #0056b3; /* 보조 색상 - 어두운 파란색 */
+    --hover-color: #0056b3; /* 호버 시 색상 - 어두운 파란색 */
+    --light-hover-color: #004085; /* 더 어두운 호버 색상 */
+    --background-color: #f8f9fa; /* 배경 색상 - 연한 회색 */
+    --text-color: #343a40; /* 기본 텍스트 색상 - 어두운 회색 */
+}
+
+/* body */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f7f7f7;
+    margin: 0;
+    padding: 20px;
+}
+
+/* footer */
+.footer {
+    text-align: center;
+    margin-top: 20px;
+    color: #888;
+    font-size: 0.8em;
+    width: 100%; /* 전체 너비 사용 */
+    position: fixed; /* 페이지 하단에 고정 */
+    bottom: 0; /* 하단에 위치 */
+    left: 0; /* 왼쪽으로 정렬 */
+    background-color: #f7f7f7; /* 배경색 추가 */
+    padding: 10px 0; /* 위아래 패딩 추가 */
+    box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.1); /* 상단에 그림자 추가 */
+}
+
+/* header */
+.header {
+    background-color: #fff; /* 흰색 배경 */
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between; /* 왼쪽과 오른쪽 정렬 */
+    align-items: center; /* 수직 정렬 */
+    margin-bottom: 20px;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 24px;
+    color: #333;
+}
+
+.link-container {
+    list-style-type: none; /* 리스트 스타일 제거 */
+    padding: 0;
+    margin: 0;
+    display: flex; /* Flexbox로 나란히 배치(가로 배치) */
+    justify-content: center; /* 중앙 정렬 */
+}
+
+.link-container li {
+    margin: 0 15px; /* 리스트 아이템 간의 간격 */
+}
+
+.link {
+    background: linear-gradient(90deg, #34495e, #2c3e50); /* 그라데이션 */
+    -webkit-background-clip: text; /* 텍스트에 그라데이션 적용 */
+    -webkit-text-fill-color: transparent; /* 텍스트 색상 투명하게 설정 */
+    text-decoration: none;
+    font-size: 16px;
+    margin-left: 10px;
+    transition: background 0.3s ease; /* 배경 전환 효과 추가 */
+}
+
+.link:hover {
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color)); /* 오버 시 파란색에서 더 어두운 파란색으로 그라데이션 */
+    -webkit-background-clip: text; /* 텍스트에 그라데이션 적용 */
+    -webkit-text-fill-color: transparent; /* 텍스트 색상 투명하게 설정 */
+}

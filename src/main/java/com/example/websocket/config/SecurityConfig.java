@@ -70,11 +70,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorizeRequest ->
                         authorizeRequest
                                 .requestMatchers("/error").permitAll()
+                                .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
                                 .requestMatchers("/", "/api/login", "/api/join", "/login", "/join").permitAll()
                                 .requestMatchers("/chat", "/chat/list").permitAll()
                                 .requestMatchers("/ws/chat/**").permitAll()
                                 .requestMatchers("/gpt/chat").permitAll()
-                                .requestMatchers("/draw/**").permitAll()
+                                .requestMatchers("/friend/list").permitAll()
                                 .anyRequest().authenticated()
                 )
 

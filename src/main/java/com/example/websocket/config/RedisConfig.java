@@ -1,4 +1,4 @@
-package com.example.websocket.redis;
+package com.example.websocket.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

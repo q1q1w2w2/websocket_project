@@ -4,40 +4,71 @@
     <meta charset="UTF-8">
     <title>실시간 채팅</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="/css/styles.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 20px;
-        }
-
         h1 {
             text-align: center;
             color: #333;
         }
 
         .invite-code-container {
-            text-align: center; /* 중앙 정렬 */
-            margin-bottom: 20px; /* 아래쪽 여백 */
+            text-align: center;
+            margin-bottom: 20px;
         }
 
         h3 {
-            text-align: center; /* 가운데 정렬 */
+            text-align: center;
             color: #555;
-            margin: 10px 0; /* 위아래 여백 설정 */
+            margin: 10px 0;
+        }
+
+        .chat-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            margin: 20px auto;
+            max-width: 1200px; /* 최대 너비 설정 */
         }
 
         #messages {
             background: #fff;
             border-radius: 5px;
             padding: 20px;
-            margin: 20px auto;
-            max-width: 600px;
+            margin-right: 20px; /* 참가자 목록과의 간격 */
+            width: 70%; /* 너비 설정 */
             height: 300px;
             overflow-y: auto;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
+
+        .participants {
+            background: #fff;
+            border-radius: 5px;
+            padding: 20px;
+            width: 10%; /* 너비 조정 */
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            height: 300px; /* 높이 설정 */
+            overflow-y: auto; /* 스크롤 가능 */
+            border: 1px solid #e0e0e0; /* 테두리 추가 */
+        }
+
+        .participants h4 {
+            margin: 0 0 10px; /* 제목과 간격 조정 */
+            font-size: 18px; /* 제목 크기 조정 */
+            color: #333; /* 제목 색상 조정 */
+        }
+
+        .participant {
+            padding: 10px; /* 각 참가자 항목의 패딩 */
+            border-bottom: 1px solid #f0f0f0; /* 항목 간 구분선 */
+            color: #555; /* 텍스트 색상 */
+            transition: background 0.3s; /* 호버 효과를 위한 전환 효과 */
+        }
+
+        .participant:hover {
+            background: #f9f9f9; /* 호버 시 배경 색상 변경 */
+        }
+
 
         .message {
             margin-bottom: 15px;
@@ -82,52 +113,9 @@
         }
 
         .copy-button {
-            padding: 8px 13px; /* 버튼 크기 조정 */
+            padding: 8px 13px;
             margin-left: 10px;
         }
-
-        .footer {
-            text-align: center;
-            margin-top: 20px;
-            color: #888;
-            font-size: 0.8em;
-            width: 100%; /* 전체 너비 사용 */
-            position: absolute; /* 페이지 하단에 고정 */
-            bottom: 10px; /* 하단 여백 */
-        }
-
-        .header {
-            background-color: #fff; /* 흰색 배경 */
-            padding: 15px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            display: flex;
-            justify-content: space-between; /* 왼쪽과 오른쪽 정렬 */
-            align-items: center; /* 수직 정렬 */
-            margin-bottom: 20px;
-        }
-
-        .header h1 {
-            margin: 0;
-            font-size: 24px;
-            color: #333;
-        }
-
-        .button-container {
-            display: flex; /* 버튼들을 가로로 배치 */
-        }
-
-        .link {
-            color: #007bff; /* 링크 색상 */
-            text-decoration: none; /* 밑줄 제거 */
-            font-size: 16px;
-            margin-left: 10px; /* 링크 간격 */
-        }
-
-        .link:hover {
-            text-decoration: underline; /* 호버 시 밑줄 추가 */
-        }
-
 
     </style>
 
@@ -138,7 +126,7 @@
 
         const accessToken = localStorage.getItem('accessToken');
         const refreshToken = localStorage.getItem('refreshToken');
-        const chatRoomId = /*[[${room.id}]]*/ ''; // uuid아니고 인덱스 id임
+        const chatRoomId = /*[[${room.id}]]*/ '';
         const chatRoomUuid = /*[[${room.uuid}]]*/ '';
         let username = '';
 
@@ -172,7 +160,7 @@
             const messagesDiv = document.getElementById("messages");
             const parsedMessage = JSON.parse(message.body);
             messagesDiv.innerHTML += `<div class="message"><strong>${parsedMessage.username}</strong>: ${parsedMessage.message} <span>${new Date(parsedMessage.timestamp).toLocaleString()}</span></div>`;
-            messagesDiv.scrollTop = messagesDiv.scrollHeight; // 자동 스크롤
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }
 
         function getMessages() {
@@ -193,11 +181,10 @@
                     data.forEach(chatMessage => {
                         messagesDiv.innerHTML += `<div class="message"><strong>${chatMessage.username}</strong>: ${chatMessage.message} <span>${new Date(chatMessage.timestamp).toLocaleString()}</span></div>`;
                     });
-                    messagesDiv.scrollTop = messagesDiv.scrollHeight; // 자동 스크롤
+                    messagesDiv.scrollTop = messagesDiv.scrollHeight;
                 })
                 .catch(error => {
                     console.error('Error: ', error);
-                    // alert("채팅 기록을 불러오는 중 오류가 발생했습니다.");
                 });
         }
 
@@ -256,37 +243,6 @@
             });
         }
 
-        function getToChatList() {
-            window.location.href = `/chat/list?accessToken=${accessToken}`;
-        }
-
-        function logout() {
-            fetch("/api/logout", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + accessToken
-                },
-                body: JSON.stringify({refreshToken: refreshToken})
-            })
-                .then(response => {
-                    if (response.ok) {
-                        // 로그아웃 성공 시 토큰 삭제 및 로그인 페이지로 이동
-                        localStorage.removeItem('refreshToken');
-                        localStorage.removeItem('accessToken');
-                        window.location.href = '/login';
-                        alert("로그아웃 되었습니다.");
-                    } else {
-                        throw new Error('로그아웃 실패');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('로그아웃 중 오류가 발생했습니다');
-                    window.location.href = '/login';
-                });
-        }
-
         function getHelpMessage() {
             fetch('/chat/help', {
                 method: 'POST',
@@ -323,13 +279,7 @@
 </head>
 
 <body>
-<div class="header">
-    <h1>CHAT</h1>
-    <div class="button-container">
-        <a class="link" href="#" onclick="getToChatList()">채팅목록</a>
-        <a class="link" href="#" onclick="logout()">로그아웃</a>
-    </div>
-</div>
+<div th:replace="fragment/header :: header"></div>
 
 <h3 th:text="'방 제목: ' + ${room.roomName}"></h3>
 <div class="invite-code-container">
@@ -337,7 +287,16 @@
     <button class="copy-button" onclick="copyToClipboard()">복사</button>
 </div>
 
-<div id="messages"></div>
+<div class="chat-container">
+    <div id="messages"></div>
+    <div class="participants">
+        <h4>참가자 목록</h4>
+        <div th:each="user : ${users}">
+            <div class="participant" th:text="${user.username}"></div>
+        </div>
+    </div>
+
+</div>
 
 <form onsubmit="event.preventDefault(); submitBtn();">
     <input type="text" id="message" placeholder="메시지를 입력하세요." required>
@@ -349,8 +308,10 @@
     <button onclick="getHelpMessage()">도움!</button>
 </div>
 
-<div class="footer">
-    &copy; 실시간 채팅 시스템
-</div>
+<!-- footer -->
+<div th:replace="fragment/footer :: footer"></div>
+
+<script src="/js/scripts.js"></script>
 </body>
 </html>
+

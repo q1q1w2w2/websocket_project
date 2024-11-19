@@ -12,6 +12,8 @@ import com.example.websocket.socket.service.MessageService;
 import com.example.websocket.socket.service.UserChatRoomService;
 import com.example.websocket.user.domain.User;
 import com.example.websocket.user.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,21 +44,42 @@ public class ChatController {
     private final UserChatRoomService userChatRoomService;
 
     @GetMapping("/chat")
-    public String getChatPage(@RequestParam(required = false) String id, Model model) {
-        // 파라미터가 없으면 로그인 페이지로 리다이렉트
+    public String getChatPage(@RequestParam(required = false) String id, Model model, HttpSession session) throws Exception {
+        // 로그인 검증
+        String accessToken =(String) session.getAttribute("accessToken");
+        if (accessToken == null || accessToken.isEmpty()) {
+            return "redirect:/login";
+        }
+        // 방 uuid 확인 + 검증도 필요함
         if (id == null || id.isEmpty()) {
             return "redirect:/login";
         }
-
+        User user = userService.getUserByToken(accessToken);
         ChatRoom room = chatRoomService.findByUuid(id);
+
+        // 채팅방에 속한 유저인지 확인
+        if (!userChatRoomService.findByUserAndChatRoom(user, room)) {
+            return "redirect:/chat/list";
+        }
+
         model.addAttribute("room", room);
-        return "chat"; // 채팅 페이지로 이동
+        // 참가자 목록
+        ArrayList<User> users = new ArrayList<>();
+        List<UserChatRoom> chatRooms = userChatRoomService.findByChatRoom(room);
+        for (UserChatRoom chatRoom : chatRooms) {
+            users.add(chatRoom.getUser());
+        }
+        model.addAttribute("users", users);
+
+        return "chat";
     }
 
     // 채팅방 목록(로그인 성공 시 여기로 이동됨)
     @GetMapping("/chat/list")
-    public String getChatListPage(@RequestParam(required = false) String accessToken, Model model) {
+    public String getChatListPage(Model model, HttpSession session) { // @RequestParam(required = false) String accessToken,
         try {
+            String accessToken = (String) session.getAttribute("accessToken");
+
             if (accessToken == null || accessToken.isEmpty()) {
                 return "redirect:/login";
             }

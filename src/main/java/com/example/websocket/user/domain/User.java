@@ -8,7 +8,11 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
+import static jakarta.persistence.FetchType.*;
 
 @Entity
 @Getter
@@ -21,10 +25,10 @@ public class User {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "nickname")
-    private String nickname;
+    @Column(name = "username", unique = true, nullable = false)
+    private String username;
 
-    @Column(name = "loginId")
+    @Column(name = "loginId", unique = true, nullable = false)
     private String loginId;
 
     @Column(name = "password")
@@ -33,11 +37,14 @@ public class User {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private Set<FriendShip> friendShip = new HashSet<>();
+
     @Builder
-    public User(String nickname, String loginId, String password, LocalDateTime createdAt) {
-        this.nickname = nickname;
+    public User(String nickname, String loginId, String password) {
+        this.username = nickname;
         this.loginId = loginId;
         this.password = password;
-        this.createdAt = createdAt;
+        this.createdAt = LocalDateTime.now().withNano(0);
     }
 }

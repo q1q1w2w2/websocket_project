@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -21,5 +23,9 @@ public class UserChatRoomService {
 
     public boolean findByUserAndChatRoom(User user, ChatRoom chatRoom) {
         return userChatRoomRepository.findByUserAndChatRoom(user, chatRoom).isPresent();
+    }
+
+    public List<UserChatRoom> findByChatRoom(ChatRoom chatRoom) {
+        return userChatRoomRepository.findByChatRoom(chatRoom);
     }
 }

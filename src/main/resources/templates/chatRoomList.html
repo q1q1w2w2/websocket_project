@@ -4,60 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>채팅방 목록</title>
+    <link rel="stylesheet" href="/css/styles.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f7f7f7;
-            margin: 0;
-            padding: 20px;
-        }
-
-        .header {
-            background-color: #fff; /* 흰색 배경 */
-            padding: 15px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            display: flex;
-            justify-content: space-between; /* 왼쪽과 오른쪽 정렬 */
-            align-items: center; /* 수직 정렬 */
-            margin-bottom: 20px;
-        }
-
-        .header h1 {
-            margin: 0;
-            font-size: 24px;
-            color: #333;
-        }
-
-        .button-container {
-            display: flex; /* 버튼들을 가로로 배치 */
-        }
-
         .button {
-            background-color: #28a745;
+            background-color: var(--primary-color);
             color: white;
             border: none;
             border-radius: 4px;
-            padding: 10px 15px;
+            padding: 8px 12px;
             cursor: pointer;
-            font-size: 16px;
-            margin-left: 10px; /* 버튼 간격 */
+            font-size: 14px;
             transition: background-color 0.3s;
+            margin-bottom: 10px;
         }
 
         .button:hover {
-            background-color: #218838;
-        }
-
-        .link {
-            color: #007bff; /* 링크 색상 */
-            text-decoration: none; /* 밑줄 제거 */
-            font-size: 16px;
-            margin-left: 10px; /* 링크 간격 */
-        }
-
-        .link:hover {
-            text-decoration: underline; /* 호버 시 밑줄 추가 */
+            background-color: var(--hover-color);
         }
 
         .chat-room-list {
@@ -83,29 +45,15 @@
             margin: 0;
         }
 
-        .footer {
-            text-align: center;
-            margin-top: 20px;
-            color: #888;
-            font-size: 0.8em;
-            width: 100%; /* 전체 너비 사용 */
-            position: absolute; /* 페이지 하단에 고정 */
-            bottom: 10px; /* 하단 여백 */
-        }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <h1>CHAT</h1>
-    <div class="button-container">
-        <a class="link" href="#" onclick="getToChatList()">채팅목록</a>
-        <a class="link" href="#" onclick="logout()">로그아웃</a>
-    </div>
-</div>
+<!-- header -->
+<div th:replace="fragment/header :: header"></div>
 
-<h3 th:text="'현재 사용자: ' + ${user.nickname}"></h3>
-<button class="button" onclick="openCreateChatRoomModal()">채팅방 만들기</button>
+<h3 th:text="'현재 사용자: ' + ${user.username}"></h3>
+<button class="button" onclick="createChatRoom()">채팅방 만들기</button>
 <button class="button" onclick="joinChatRoom()">채팅방 참가하기</button>
 <ul class="chat-room-list">
     <li th:each="room : ${chatRooms}" class="chat-room"
@@ -115,48 +63,27 @@
     </li>
 </ul>
 
-<!-- 모달: 채팅방 만들기 -->
-<div id="createChatRoomModal" class="modal" style="display:none;">
-    <div class="modal-content">
-        <span class="close" onclick="closeModal()">&times;</span>
-        <h2>채팅방 만들기</h2>
-        <input type="text" id="chatRoomName" placeholder="채팅방 이름" required>
-        <button class="button" onclick="createChatRoom()">생성</button>
-    </div>
-</div>
-
-<div class="footer">
-    &copy; 실시간 채팅 시스템
-</div>
+<!-- footer -->
+<div th:replace="fragment/footer :: footer"></div>
 
 <script>
     const accessToken = localStorage.getItem('accessToken');
     const refreshToken = localStorage.getItem('refreshToken');
 
-    function openCreateChatRoomModal() {
-        document.getElementById('createChatRoomModal').style.display = 'block';
-    }
-
-    function closeModal() {
-        document.getElementById('createChatRoomModal').style.display = 'none';
-        document.getElementById('chatRoomName').value = ''; // 입력 필드 초기화
-    }
-
     function createChatRoom() {
-        const chatRoomName = document.getElementById('chatRoomName').value;
+        const chatRoomName = prompt("생성할 채팅방 이름을 입력하세요:");
+
         if (chatRoomName) {
-            // 서버에 채팅방 생성 요청
             fetch('/chat/room/create', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + accessToken // accessToken 추가
+                    'Authorization': 'Bearer ' + accessToken
                 },
                 body: JSON.stringify({roomName: chatRoomName})
             })
                 .then(response => {
                     if (response.ok) {
-                        // 채팅방 생성 성공 시 페이지 새로고침
                         window.location.reload();
                     } else {
                         throw new Error('채팅방 생성 실패: ' + response.statusText);
@@ -166,9 +93,6 @@
                     console.error('Error:', error);
                     alert('채팅방 생성 중 오류가 발생했습니다: ' + error.message);
                 });
-            closeModal(); // 모달 닫기
-        } else {
-            alert("채팅방 이름을 입력해주세요.");
         }
     }
 
@@ -180,18 +104,17 @@
         const id = prompt("참가할 채팅방 ID를 입력하세요:");
 
         if (id) {
-            // 채팅방 참가 요청을 서버에 보냅니다.
             fetch('/chat/join', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + accessToken // accessToken 추가
+                    'Authorization': 'Bearer ' + accessToken
                 },
                 body: JSON.stringify({roomId: id})
             })
                 .then(response => {
                     if (response.ok) {
-                        window.location.href = '/chat?id=' + id; // 채팅방 페이지로 이동
+                        window.location.href = '/chat?id=' + id;
                     } else {
                         throw new Error('채팅방 참가 실패: ' + response.statusText);
                     }
@@ -202,38 +125,9 @@
                 });
         }
     }
-
-    function getToChatList() {
-        window.location.href = `/chat/list?accessToken=${accessToken}`;
-    }
-
-    function logout() {
-        fetch("/api/logout", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + accessToken
-            },
-            body: JSON.stringify({refreshToken: refreshToken})
-        })
-            .then(response => {
-                if (response.ok) {
-                    // 로그아웃 성공 시 토큰 삭제 및 로그인 페이지로 이동
-                    localStorage.removeItem('refreshToken');
-                    localStorage.removeItem('accessToken');
-                    window.location.href = '/login';
-                    alert("로그아웃 되었습니다.");
-                } else {
-                    throw new Error('로그아웃 실패');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('로그아웃 중 오류가 발생했습니다');
-                window.location.href = '/login';
-            });
-    }
 </script>
+
+<script src="/js/scripts.js"></script>
 
 </body>
 </html>
