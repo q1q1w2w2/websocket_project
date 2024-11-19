@@ -2,6 +2,7 @@ package com.example.websocket.exception;
 
 import com.example.websocket.exception.dto.ExceptionResponseDto;
 import com.example.websocket.socket.exception.ChatRoomNotFoundException;
+import com.example.websocket.user.exception.FriendShipException;
 import com.example.websocket.user.exception.UserAlreadyExistException;
 import com.example.websocket.user.exception.UserNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +36,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ChatRoomNotFoundException.class)
     public ResponseEntity<ExceptionResponseDto> handleChatRoomNotFoundException(ChatRoomNotFoundException e) {
         return createErrorResponse(e, UNAUTHORIZED, "채팅방을 찾을 수 없습니다.");
+    }
+
+    @ExceptionHandler(FriendShipException.class)
+    public ResponseEntity<ExceptionResponseDto> handleFriendShipException(FriendShipException e) {
+        return createErrorResponse(e, BAD_REQUEST, e.getMessage());
     }
 
     private ResponseEntity createErrorResponse(Exception e, HttpStatus status, String message) {

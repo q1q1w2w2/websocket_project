@@ -3,6 +3,7 @@ package com.example.websocket.user.service;
 import com.example.websocket.user.domain.Friend;
 import com.example.websocket.user.domain.FriendShip;
 import com.example.websocket.user.domain.User;
+import com.example.websocket.user.exception.FriendShipException;
 import com.example.websocket.user.exception.UserNotFoundException;
 import com.example.websocket.user.repository.FriendRepository;
 import com.example.websocket.user.repository.FriendShipRepository;
@@ -31,13 +32,13 @@ public class FriendService {
                 .orElseThrow(UserNotFoundException::new);
 
         if (user.equals(toUser)) {
-            throw new IllegalArgumentException("자기 자신에게 친구요청을 보낼 수 없습니다.");
+            throw new FriendShipException("자기 자신에게 친구요청을 보낼 수 없습니다.");
         }
         if (friendRepository.findByFromUserIdAndToUserId(user.getId(), toUser.getId()).isPresent()) {
-            throw new IllegalArgumentException("요청 수락 대기중입니다."); // todo 예외 globalHandler로 처리하기
+            throw new FriendShipException("요청 수락 대기중입니다.");
         }
         if (friendShipRepository.findByUserAndFriend(user, toUser).isPresent()) {
-            throw new IllegalArgumentException("이미 친구로 등록된 사용자입니다.");
+            throw new FriendShipException("이미 친구로 등록된 사용자입니다.");
         }
 
 
@@ -53,7 +54,7 @@ public class FriendService {
     // 친구 요청 수락
     public void accept(Friend friend, User user) {
         if (!friend.getToUserId().equals(user.getId())) {
-            throw new IllegalArgumentException("해당 유저에게 보낸 친구요청이 아닙니다.");
+            throw new FriendShipException("해당 유저에게 보낸 친구요청이 아닙니다.");
         }
 
         // 두 유저 모두에게 friendShip 추가해야 함
@@ -88,7 +89,7 @@ public class FriendService {
     // 친구 요청 거절
     public void reject(Friend friend, User user) {
         if (!friend.getToUserId().equals(user.getId())) {
-            throw new IllegalArgumentException("해당 유저에게 보낸 친구요청이 아닙니다.");
+            throw new FriendShipException("해당 유저에게 보낸 친구요청이 아닙니다.");
         }
         friendRepository.delete(friend);
     }
@@ -96,7 +97,7 @@ public class FriendService {
     // 친구 요청 찾기
     public Friend findById(Long id) {
         return friendRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("해당 친구 요청을 찾을 수 없습니다."));
+                .orElseThrow(() -> new FriendShipException("해당 친구 요청을 찾을 수 없습니다."));
     }
 
     public List<Friend> findByToUser(User user) {

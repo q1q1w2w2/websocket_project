@@ -2,6 +2,7 @@ package com.example.websocket.user.service;
 
 import com.example.websocket.user.domain.FriendShip;
 import com.example.websocket.user.domain.User;
+import com.example.websocket.user.exception.FriendShipException;
 import com.example.websocket.user.repository.FriendShipRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +24,7 @@ public class FriendShipService {
     // 친구 관계를 삭제한 유저 정보 반환(반환 메시지를 위함)
     public User deleteFriendShip(Long friendShipId, User user) {
         FriendShip friendShip = friendShipRepository.findById(friendShipId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 관계입니다."));
+                .orElseThrow(() -> new FriendShipException("존재하지 않는 관계입니다."));
 
         // 역방향도 삭제
         friendShipRepository.findByUserAndFriend(friendShip.getFriend(), user)
