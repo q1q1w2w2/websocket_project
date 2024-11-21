@@ -58,7 +58,7 @@
 <ul class="chat-room-list">
     <li th:each="room : ${chatRooms}" class="chat-room"
         th:data-uuid="${room.uuid}"
-        onclick="goToChatRoom(this.dataset.uuid)">
+        onclick="toChatRoom(this.dataset.uuid)">
         <h3 th:text="${room.roomName}">방 이름</h3>
     </li>
 </ul>
@@ -96,7 +96,7 @@
         }
     }
 
-    function goToChatRoom(uuid) {
+    function toChatRoom(uuid) {
         window.location.href = '/chat?id=' + uuid;
     }
 
@@ -116,12 +116,14 @@
                     if (response.ok) {
                         window.location.href = '/chat?id=' + id;
                     } else {
-                        throw new Error('채팅방 참가 실패: ' + response.statusText);
+                        return response.json().then(data => {
+                            throw new Error(data.message);
+                        })
                     }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
-                    alert('채팅방 참가 중 오류가 발생했습니다: ' + error.message);
+                    console.error(error);
+                    alert(error.message);
                 });
         }
     }

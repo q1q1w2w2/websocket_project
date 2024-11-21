@@ -25,6 +25,9 @@ public class ChatRoom {
     @Column(name = "uuid")
     private String uuid;
 
+    @Column(name = "deleted")
+    private boolean deleted = false;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -35,5 +38,11 @@ public class ChatRoom {
         this.roomName = roomName;
         this.uuid = uuid;
         this.createdAt = LocalDateTime.now();
+    }
+
+    // ===================================
+
+    public void delete() {
+        this.deleted = true;
     }
 }

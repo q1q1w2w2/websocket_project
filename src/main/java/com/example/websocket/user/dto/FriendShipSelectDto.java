@@ -6,15 +6,13 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class UserResponseDto {
+public class FriendShipSelectDto {
 
     private Long userId;
-    private String loginId;
     private String username;
 
-    public UserResponseDto(User user) {
+    public FriendShipSelectDto(User user) {
         this.userId = user.getId();
-        this.loginId = user.getLoginId();
         this.username = user.getUsername();
     }
 }

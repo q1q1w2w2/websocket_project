@@ -71,12 +71,11 @@ public class SecurityConfig {
                         authorizeRequest
                                 .requestMatchers("/error").permitAll()
                                 .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
-                                .requestMatchers("/", "/api/login", "/api/join", "/login", "/join").permitAll()
-                                .requestMatchers("/chat", "/chat/list").permitAll()
                                 .requestMatchers("/ws/chat/**").permitAll()
-                                .requestMatchers("/gpt/chat").permitAll()
-                                .requestMatchers("/friend/list").permitAll()
+                                .requestMatchers("/", "/api/login", "/api/join", "/login", "/join").permitAll()
+                                .requestMatchers("/chat", "/chat/list", "/gpt/chat", "friend/list").permitAll()
                                 .anyRequest().authenticated()
+
                 )
 
                 .sessionManagement(session ->

@@ -117,165 +117,66 @@
             margin-left: 10px;
         }
 
+        /* 모달 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal h2 {
+            margin: 0 0 20px;
+        }
+
+        .modal label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .modal select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+
+        .modal button {
+            padding: 10px 15px;
+            margin-right: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+
+        .modal button:hover {
+            background-color: #0056b3;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
     </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.0/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
-    <script th:inline="javascript">
-        let stompClient = null;
-
-        const accessToken = localStorage.getItem('accessToken');
-        const refreshToken = localStorage.getItem('refreshToken');
-        const chatRoomId = /*[[${room.id}]]*/ '';
-        const chatRoomUuid = /*[[${room.uuid}]]*/ '';
-        let username = '';
-
-        function connect() {
-            console.log("roomId: ", chatRoomId);
-            if (!chatRoomId) {
-                console.log("roomId가 비어있습니다.");
-                return;
-            }
-
-            console.log("** 연결시도중.. **");
-            const socket = new SockJS('/ws/chat');
-            console.log("** sockJs로 endPoint 연결됨 **");
-
-            stompClient = Stomp.over(socket);
-            console.log("** stomp 클라이언트 생성됨 **");
-
-            stompClient.connect({}, function (frame) {
-                console.log("frame : " + frame);
-                stompClient.subscribe('/topic/' + chatRoomId, function (message) {
-                    console.log("{} message : {}", chatRoomId, message);
-                    showMessage(message);
-                });
-                console.log("** 서버에 연결됨 **");
-            }, function (error) {
-                console.error("연결 해제: ", error);
-            });
-        }
-
-        function showMessage(message) {
-            const messagesDiv = document.getElementById("messages");
-            const parsedMessage = JSON.parse(message.body);
-            messagesDiv.innerHTML += `<div class="message"><strong>${parsedMessage.username}</strong>: ${parsedMessage.message} <span>${new Date(parsedMessage.timestamp).toLocaleString()}</span></div>`;
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
-        }
-
-        function getMessages() {
-            fetch(`/chat/message?id=${chatRoomUuid}`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': 'Bearer ' + accessToken
-                }
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error("채팅 기록을 불러오는 데 실패했습니다.");
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    const messagesDiv = document.getElementById("messages");
-                    data.forEach(chatMessage => {
-                        messagesDiv.innerHTML += `<div class="message"><strong>${chatMessage.username}</strong>: ${chatMessage.message} <span>${new Date(chatMessage.timestamp).toLocaleString()}</span></div>`;
-                    });
-                    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-                })
-                .catch(error => {
-                    console.error('Error: ', error);
-                });
-        }
-
-        function submitBtn() {
-            const messageInput = document.getElementById("message").value;
-
-            if (!messageInput.trim()) {
-                alert("메시지를 입력하세요.");
-                return;
-            }
-
-            if (stompClient) {
-                stompClient.send("/app/chat", {},
-                    JSON.stringify({
-                        chatRoomId: chatRoomId,
-                        messageType: "TALK",
-                        token: accessToken,
-                        username: username,
-                        message: messageInput
-                    })
-                );
-                document.getElementById("message").value = "";
-            } else {
-                console.error("STOMP 연결 안됨");
-            }
-        }
-
-        function getUserInfo() {
-            fetch('/user/info', {
-                method: 'GET',
-                headers: {
-                    'Authorization': 'Bearer ' + accessToken
-                }
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        window.location.href = '/login';
-                        throw new Error("로그인 후 이용해주세요.");
-                    }
-                    return response.json();
-                })
-                .then(user => {
-                    username = user.username;
-                })
-                .catch(error => {
-                    console.error('Error: ', error);
-                    alert("로그인 후 이용해주세요.");
-                });
-        }
-
-        function copyToClipboard() {
-            navigator.clipboard.writeText(chatRoomUuid).then(() => {
-                alert("초대코드가 클립보드에 복사되었습니다.");
-            }).catch(err => {
-                console.error('복사 실패:', err);
-            });
-        }
-
-        function getHelpMessage() {
-            fetch('/chat/help', {
-                method: 'POST',
-                headers: {
-                    'Authorization': 'Bearer ' + accessToken,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ roomId: chatRoomUuid })
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        return response.json().then(err => {
-                            throw new Error("도움 메시지를 불러오는 데 실패했습니다: " + err.message);
-                        });
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log("data: ", data);
-                    document.getElementById("help-message").innerText = "추천 답변: " + data.answer;
-                })
-                .catch(error => {
-                    console.error('Error: ', error);
-                    alert(error.message);
-                });
-        }
-
-        window.onload = function () {
-            getUserInfo();
-            connect();
-            getMessages();
-        }
-    </script>
 </head>
 
 <body>
@@ -307,10 +208,323 @@
     <h4 id="help-message"></h4>
     <button onclick="getHelpMessage()">도움!</button>
 </div>
+<button onclick="exitConfirm()">대화방 나가기</button>
+<button onclick="openModal()">친구 초대하기</button>
+
+<div class="modal" id="invite-modal">
+    <h2>대화방 초대하기</h2>
+    <!-- 친구목록 -->
+    <div>
+        <label for="friend-select">초대할 친구를 선택하세요:</label>
+        <select id="friend-select" placeholder="초대할 친구를 선택하세요">
+            <!-- 동적으로 추가됨 -->
+        </select>
+    </div>
+    <div>
+        <button onclick="inviteFriend()">초대하기</button>
+        <button onclick="closeModal()">닫기</button>
+    </div>
+</div>
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal()"></div>
+
 
 <!-- footer -->
 <div th:replace="fragment/footer :: footer"></div>
 
+<script th:inline="javascript">
+    let stompClient = null;
+
+    const accessToken = localStorage.getItem('accessToken');
+    const refreshToken = localStorage.getItem('refreshToken');
+    const chatRoomId = /*[[${room.id}]]*/ '';
+    const chatRoomUuid = /*[[${room.uuid}]]*/ '';
+    let userId = '';
+    let username = '';
+
+    function connect() {
+        console.log("roomId: ", chatRoomId);
+        if (!chatRoomId) {
+            console.log("roomId가 비어있습니다.");
+            return;
+        }
+
+        console.log("** 연결시도중.. **");
+        const socket = new SockJS('/ws/chat');
+        console.log("** sockJs로 endPoint 연결됨 **");
+
+        stompClient = Stomp.over(socket);
+        console.log("** stomp 클라이언트 생성됨 **");
+
+        stompClient.connect({}, function (frame) {
+            console.log("frame : " + frame);
+            stompClient.subscribe('/topic/' + chatRoomId, function (message) {
+                console.log("{} message : {}", chatRoomId, message);
+                showMessage(message);
+            });
+            console.log("** 서버에 연결됨 **");
+        }, function (error) {
+            console.error("연결 해제: ", error);
+        });
+    }
+
+    function showMessage(message) {
+        const messagesDiv = document.getElementById("messages");
+        const parsedMessage = JSON.parse(message.body);
+        messagesDiv.innerHTML += `<div class="message"><strong>${parsedMessage.username}</strong>: ${parsedMessage.message} <span>${new Date(parsedMessage.timestamp).toLocaleString()}</span></div>`;
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function getMessages() {
+        fetch(`/chat/message?id=${chatRoomUuid}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + accessToken
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("채팅 기록을 불러오는 데 실패했습니다.");
+                }
+                return response.json();
+            })
+            .then(data => {
+                const messagesDiv = document.getElementById("messages");
+                data.forEach(chatMessage => {
+                    messagesDiv.innerHTML += `<div class="message"><strong>${chatMessage.username}</strong>: ${chatMessage.message} <span>${new Date(chatMessage.timestamp).toLocaleString()}</span></div>`;
+                });
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            })
+            .catch(error => {
+                console.error('Error: ', error);
+            });
+    }
+
+    function submitBtn() {
+        const messageInput = document.getElementById("message").value;
+
+        if (!messageInput.trim()) {
+            alert("메시지를 입력하세요.");
+            return;
+        }
+
+        if (stompClient) {
+            stompClient.send("/app/chat", {},
+                JSON.stringify({
+                    chatRoomId: chatRoomId,
+                    messageType: "TALK",
+                    token: accessToken,
+                    username: username,
+                    message: messageInput
+                })
+            );
+            document.getElementById("message").value = "";
+        } else {
+            console.error("STOMP 연결 안됨");
+        }
+    }
+
+    function getUserInfo() {
+        fetch('/user/info', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + accessToken
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    window.location.href = '/login';
+                    throw new Error("로그인 후 이용해주세요.");
+                }
+                return response.json();
+            })
+            .then(user => {
+                userId = user.userId;
+                username = user.username;
+            })
+            .catch(error => {
+                console.error('Error: ', error);
+                alert("로그인 후 이용해주세요.");
+            });
+    }
+
+    function copyToClipboard() {
+        navigator.clipboard.writeText(chatRoomUuid).then(() => {
+            alert("초대코드가 클립보드에 복사되었습니다.");
+        }).catch(err => {
+            console.error('복사 실패:', err);
+        });
+    }
+
+    function getHelpMessage() {
+        fetch('/chat/help', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + accessToken,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ roomId: chatRoomUuid })
+        })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        throw new Error("도움 메시지를 불러오는 데 실패했습니다: " + err.message);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("data: ", data);
+                document.getElementById("help-message").innerText = "추천 답변: " + data.answer;
+            })
+            .catch(error => {
+                console.error('Error: ', error);
+                alert(error.message);
+            });
+    }
+
+    function exitConfirm() {
+        const confirmation = confirm("정말 대화방을 나가시겠습니까?");
+        if (confirmation) {
+            exitChatRoom()
+        }
+    }
+
+    function exitChatRoom() {
+        fetch('/chat/exit', {
+            method: 'DELETE',
+            headers: {
+                'Content-type': 'application/json',
+                'Authorization': 'Bearer ' + accessToken
+            },
+            body: JSON.stringify({ roomId : chatRoomId})
+        })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    return response.json().then(data => {
+                        throw new Error(data.message);
+                    });
+                }
+            })
+            .then(data => {
+                console.log(data.message);
+                alert(data.message);
+            })
+            .catch(error => {
+                console.error('Error: ', error.message);
+                alert(error.message);
+            })
+            .finally(() => {
+                window.location.href = '/chat/list';
+            })
+    }
+
+    function getFriendList() {
+        fetch('/api/friend/list', {
+            method: 'GET',
+            headers: {
+                'Content-type': 'application/json',
+                'Authorization': 'Bearer ' + accessToken
+            }
+        })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    return response.json().then(data => {
+                        throw new Error(data.message);
+                    });
+                }
+            })
+            .then(data => {
+                setFriendSelect(data);
+            })
+            .catch(error => {
+                console.error(error.message);
+                alert(error.message);
+            })
+    }
+
+    function setFriendSelect(friends) {
+        const friendSelect = document.getElementById('friend-select');
+        friendSelect.innerHTML = '';
+
+        // 기본 선택 옵션 추가
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        defaultOption.textContent = '초대할 친구를 선택하세요';
+        friendSelect.appendChild(defaultOption);
+
+        // 친구 목록 추가
+        friends.forEach(friend => {
+            const option = document.createElement('option');
+            option.value = friend.userId;
+            option.textContent = friend.username;
+            friendSelect.appendChild(option);
+        });
+    }
+
+    function inviteFriend() {
+        const selectElement = document.getElementById('friend-select');
+        const selectedFriendId = selectElement.value;
+
+        if (!selectedFriendId) {
+            alert("초대할 친구를 선택하세요.");
+            return;
+        }
+
+        fetch('/api/chat/invite', {
+            method: 'POST',
+            headers: {
+                'Content-type': 'application/json',
+                'Authorization': 'Bearer ' + accessToken
+            },
+            body: JSON.stringify({
+                roomId: chatRoomId,
+                userId: selectedFriendId
+            })
+        })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    return response.json().then(data => {
+                        throw new Error(data.message);
+                    });
+                }
+            })
+            .then(data => {
+                console.log(data.message);
+                alert(data.message);
+                window.location.reload();
+            })
+            .catch(error => {
+                console.error(error.message);
+                alert(error.message);
+            })
+    }
+
+    function openModal() {
+        document.getElementById('invite-modal').style.display = 'block';
+        document.getElementById('modal-overlay').style.display = 'block';
+    }
+
+    function closeModal() {
+        document.getElementById('invite-modal').style.display = 'none';
+        document.getElementById('modal-overlay').style.display = 'none';
+    }
+
+
+    window.onload = function () {
+        getUserInfo();
+        connect();
+        getMessages();
+        getFriendList();
+    }
+</script>
 <script src="/js/scripts.js"></script>
 </body>
 </html>

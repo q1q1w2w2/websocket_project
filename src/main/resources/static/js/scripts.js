@@ -3,8 +3,8 @@ function toFriendList() {
     window.location.href = '/friend/list';
 }
 
-function getToChatList() {
-    window.location.href = `/chat/list?accessToken=${accessToken}`;
+function toChatList() {
+    window.location.href = `/chat/list`;
 }
 
 function logout() {

@@ -12,7 +12,7 @@ import java.util.Optional;
 @Repository
 public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 
-    @Query("select cr from ChatRoom cr join UserChatRoom ucr on cr.id = ucr.chatRoom.id where ucr.user.loginId = :loginId")
+    @Query("SELECT cr FROM ChatRoom cr JOIN UserChatRoom ucr ON cr.id = ucr.chatRoom.id WHERE ucr.user.loginId = :loginId AND cr.deleted = false")
     List<ChatRoom> findByUserLoginId(@Param("loginId") String loginId);
 
     Optional<ChatRoom> findByUuid(String uuid);

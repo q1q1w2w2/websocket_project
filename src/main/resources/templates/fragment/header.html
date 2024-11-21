@@ -7,11 +7,11 @@
 <body>
 <div th:fragment="header">
     <div class="header">
-        <h1>CHAT</h1>
+        <h1 onclick="toChatList()">CHAT</h1>
         <nav>
             <ul class="link-container">
                 <li><a class="link" href="#" onclick="toFriendList()">친구목록</a></li>
-                <li><a class="link" href="#" onclick="getToChatList()">채팅목록</a></li>
+                <li><a class="link" href="#" onclick="toChatList()">채팅목록</a></li>
                 <li><a class="link" href="#" onclick="logout()">로그아웃</a></li>
             </ul>
         </nav>

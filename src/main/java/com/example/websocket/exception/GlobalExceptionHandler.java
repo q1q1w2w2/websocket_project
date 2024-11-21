@@ -18,6 +18,11 @@ import static org.springframework.http.HttpStatus.*;
 @Slf4j
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ExceptionResponseDto> handleException(Exception e) {
+        return createErrorResponse(e, INTERNAL_SERVER_ERROR, e.getMessage());
+    }
+
     @ExceptionHandler(UserAlreadyExistException.class)
     public ResponseEntity<ExceptionResponseDto> handleUserAlreadyExistException(UserAlreadyExistException e) {
         return createErrorResponse(e, CONFLICT, e.getMessage());

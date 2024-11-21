@@ -33,6 +33,11 @@ public class ChatRoomService {
         return room;
     }
 
+    public ChatRoom findById(Long chatRoomId) {
+        return chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(ChatRoomNotFoundException::new);
+    }
+
     public List<ChatRoom> findByUserLoginId(String loginId) {
         return chatRoomRepository.findByUserLoginId(loginId);
     }

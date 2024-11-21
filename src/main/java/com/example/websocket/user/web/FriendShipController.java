@@ -30,19 +30,24 @@ public class FriendShipController {
     private final FriendService friendService;
     private final FriendShipService friendShipService;
 
+    // 친구 목록 페이지
     @GetMapping("/friend/list")
-    public String friendList(Model model, HttpSession session) throws Exception {
+    public String friendListPage(Model model, HttpSession session) throws Exception {
         String accessToken = (String) session.getAttribute("accessToken");
+        if (accessToken == null) {
+            return "redirect:/login";
+        }
+
         User user = userService.getUserByToken(accessToken);
 
-        // 친구 목록
+        // 친구 목록 todo n+1, 각각 친구(user) 정보를 가져오기 위해 쿼리 또 나감
         List<FriendShipListDto> friendShipList = new ArrayList<>();
         List<FriendShip> friendShips = friendShipService.findAllByUser(user);
         for (FriendShip friendShip : friendShips) {
             friendShipList.add(new FriendShipListDto(friendShip));
         }
 
-        // 친구 요청 목록
+        // 친구 요청 목록 todo 여기도 n+1
         List<FriendRequestListDto> friendRequestList = new ArrayList<>();
         List<Friend> friendRequest = friendService.findByToUser(user);
         for (Friend friend : friendRequest) {
@@ -55,6 +60,21 @@ public class FriendShipController {
         model.addAttribute("friendRequests", friendRequestList);
 
         return "friendList";
+    }
+
+    // 친구 목록
+    @GetMapping("/api/friend/list")
+    public ResponseEntity friendList() {
+        User user = userService.getCurrentUser(SecurityContextHolder.getContext().getAuthentication());
+        List<FriendShip> friendShipList = friendShipService.findAllByUser(user);
+
+        ArrayList<FriendShipSelectDto> response = new ArrayList<>();
+        for (FriendShip friendShip : friendShipList) {
+            User friend = friendShip.getFriend(); // username, userId 필요
+            response.add(new FriendShipSelectDto(friend));
+        }
+
+        return ResponseEntity.ok(response);
     }
 
     // 친구 추가 요청(닉네임으로 추가)
