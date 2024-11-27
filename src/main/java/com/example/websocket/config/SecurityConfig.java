@@ -1,6 +1,6 @@
 package com.example.websocket.config;
 
-import com.example.websocket.auth.service.CustomUserDetailsService;
+import com.example.websocket.service.auth.CustomUserDetailsService;
 import com.example.websocket.token.CustomAccessDeniedHandler;
 import com.example.websocket.token.CustomAuthenticationEntryPoint;
 import com.example.websocket.token.JwtFilter;
@@ -74,6 +74,7 @@ public class SecurityConfig {
                                 .requestMatchers("/ws/chat/**").permitAll()
                                 .requestMatchers("/", "/api/login", "/api/join", "/login", "/join").permitAll()
                                 .requestMatchers("/chat", "/chat/list", "/gpt/chat", "friend/list").permitAll()
+                                .requestMatchers("/mongo/**").permitAll()
                                 .anyRequest().authenticated()
 
                 )
@@ -125,7 +126,6 @@ public class SecurityConfig {
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web ->
-                web.ignoring().requestMatchers("/error", "/favicon.ico"));
+                web.ignoring().requestMatchers("/error", "/favicon.ico", "/css/**"));
     }
-
 }

@@ -85,7 +85,7 @@
 <ul class="friend-list">
     <h2>친구 목록</h2>
     <div th:each="friend : ${friends}" class="friend">
-        <h3 th:text="${friend.username}" style="margin-right: 10px;">친구 이름</h3>
+        <h3 th:text="${friend.username}" style="margin-right: 10px;">사용자명</h3>
         <span th:text="'추가날짜: ' + ${#temporals.format(friend.createdAt.toLocalDate(), 'yyyy-MM-dd')}" style="color: #888888; font-size: 0.8em; margin-right: 10px;">친구 추가 날짜</span>
         <button th:friendShipId="${friend.friendshipId}" th:onclick="deleteFriend(this.getAttribute('friendShipId'))">삭제</button>
     </div>
@@ -95,8 +95,8 @@
 <div th:if="${friendRequests.size() > 0}" class="friend-list">
     <h2>친구 요청</h2>
     <div th:each="friendRequest : ${friendRequests}" class="friend">
-        <h3 th:text="${friendRequest.username}" style="margin-right: 10px;"></h3>
-        <h5 th:text="'요청일: ' + ${#temporals.format(friendRequest.createdAt.toLocalDate(), 'yyyy-MM-dd')}" style="color: #888888; font-size: 0.8em; margin-right: 10px;"></h5>
+        <h3 th:text="${friendRequest.username}" style="margin-right: 10px;">사용자명</h3>
+        <span th:text="'요청일: ' + ${#temporals.format(friendRequest.createdAt.toLocalDate(), 'yyyy-MM-dd')}" style="color: #888888; font-size: 0.8em; margin-right: 10px;"></span>
         <button th:requestId="${friendRequest.id}" th:onclick="friendRequestAccept(this.getAttribute('requestId'))" style="margin-right: 5px;">수락</button>
         <button th:requestId="${friendRequest.id}" th:onclick="friendRequestReject(this.getAttribute('requestId'))">거절</button>
     </div>

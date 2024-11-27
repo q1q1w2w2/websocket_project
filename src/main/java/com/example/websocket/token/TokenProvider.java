@@ -1,16 +1,13 @@
 package com.example.websocket.token;
 
 import com.example.websocket.token.aes.AesUtil;
-import com.example.websocket.auth.service.CustomUserDetailsService;
-import com.example.websocket.auth.service.RefreshTokenService;
+import com.example.websocket.service.auth.RefreshTokenService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -22,7 +19,6 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;

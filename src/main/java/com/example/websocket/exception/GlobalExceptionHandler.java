@@ -1,10 +1,9 @@
 package com.example.websocket.exception;
 
-import com.example.websocket.exception.dto.ExceptionResponseDto;
-import com.example.websocket.socket.exception.ChatRoomNotFoundException;
-import com.example.websocket.user.exception.FriendShipException;
-import com.example.websocket.user.exception.UserAlreadyExistException;
-import com.example.websocket.user.exception.UserNotFoundException;
+import com.example.websocket.exception.socket.ChatRoomNotFoundException;
+import com.example.websocket.exception.user.FriendShipException;
+import com.example.websocket.exception.user.UserAlreadyExistException;
+import com.example.websocket.exception.user.UserNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

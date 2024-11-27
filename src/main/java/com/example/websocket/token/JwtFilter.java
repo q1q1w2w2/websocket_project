@@ -2,30 +2,29 @@ package com.example.websocket.token;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import org.springframework.web.filter.GenericFilterBean;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class JwtFilter extends GenericFilterBean { //OncePer 뭐시기
+public class JwtFilter extends OncePerRequestFilter { // GenericFilterBean 에서 변경 -> 요청당 한 번만 실행됨(spring에 의해 한 번, securityConfig 의 addFilterBefore에 의해 한 번
 
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String BEARER_PREFIX = "Bearer ";
     private final TokenProvider tokenProvider;
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
         log.info("JWT 인증 정보 Security Context에 저장");
         HttpServletRequest httpServletRequest = (HttpServletRequest) request;
 
@@ -57,5 +56,4 @@ public class JwtFilter extends GenericFilterBean { //OncePer 뭐시기
         }
         return null;
     }
-
 }
