@@ -72,7 +72,7 @@ public class SecurityConfig {
                                 .requestMatchers("/error").permitAll()
                                 .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
                                 .requestMatchers("/ws/chat/**").permitAll()
-                                .requestMatchers("/", "/api/login", "/api/join", "/login", "/join").permitAll()
+                                .requestMatchers("/api/login", "/api/join", "/login", "/join").permitAll()
                                 .requestMatchers("/chat", "/chat/list", "/gpt/chat", "friend/list").permitAll()
                                 .requestMatchers("/mongo/**").permitAll()
                                 .anyRequest().authenticated()

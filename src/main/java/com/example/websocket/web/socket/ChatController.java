@@ -14,7 +14,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -96,35 +98,68 @@ public class ChatController {
         }
     }
 
-    // 클라이언트가 /app/chat로 메시지 보낼 때 호출
-    @MessageMapping("/chat")
-    public void sendMessage(@Valid ChatMessageDto dto) throws Exception {
-        User user = userService.getUserByToken(dto.getToken());
-        Message message = messageService.save(dto, user.getId());
+    // /topic/roomId 구독중인 사용자들에게 메시지 전송
+    @MessageMapping("/chat/{chatRoomId}")
+    @SendTo("/topic/{chatRoomId}")
+    public Message sendMessage(@DestinationVariable String chatRoomId, @Valid ChatMessageDto message) throws Exception {
+        User user = userService.getUserByToken(message.getToken());
+        return messageService.save(message, user.getId());
+    }
 
-        // /topic/roomId 구독중인 사용자들에게 메시지 전송
-        messagingTemplate.convertAndSend("/topic/" + dto.getChatRoomId(), message);
+    // 대화방 입장 시 입장메시지
+    @MessageMapping("/chat/enter")
+    public void enterMessage(@Valid ChatMessageDto message) throws Exception {
+        sendStateMessage(message, "님이 채팅방에 입장했습니다.");
+    }
+
+    // 대화방 초대 시 입장메시지
+    @MessageMapping("/chat/invite")
+    public void inviteMessage(@Valid ChatMessageDto message) throws Exception {
+        sendStateMessage(message, "님을 채팅방에 초대했습니다.");
+    }
+
+    // 대화방 퇴장 시 퇴장메시지
+    @MessageMapping("/chat/exit")
+    public void leaveMessage(@Valid ChatMessageDto message) throws Exception {
+        sendStateMessage(message, "님이 채팅방에서 퇴장했습니다.");
+    }
+
+    // 상황별 메시지 출력 메서드
+    private void sendStateMessage(ChatMessageDto message, String stateMessage) throws Exception {
+        User user = userService.getUserByToken(message.getToken());
+        message.setMessage(message.getUsername() + stateMessage);
+        message.setUsername(user.getUsername());
+        Message saveMessage = messageService.save(message, user.getId());
+        messagingTemplate.convertAndSend("/topic/" + message.getChatRoomId(), saveMessage);
     }
 
     // 새로운 방 생성하기
     @PostMapping("/chat/room/create")
-    public ResponseEntity<Map<String, String>> createRoom(@RequestBody CreateRoomDto dto, @RequestHeader(AUTHORIZATION_HEADER) String authorization) throws Exception {
+    public ResponseEntity<Map<String, Object>> createRoom(@RequestBody CreateRoomDto dto, @RequestHeader(AUTHORIZATION_HEADER) String authorization) throws Exception {
         String token = authorization.substring(BEARER_PREFIX.length());
         User user = userService.getUserByToken(token);
 
         ChatRoom room = chatRoomService.save(dto, user);
-        return ResponseEntity.ok(Map.of("message", "[" + room.getRoomName() + "]이 생성되었습니다."));
+        ChatRoomResponseDto roomInfo = new ChatRoomResponseDto(room);
+        return ResponseEntity.ok(
+                Map.of("message", "[" + room.getRoomName() + "]이 생성되었습니다.",
+                        "roomInfo", roomInfo)
+        );
     }
 
     // 채팅방에 참가하기
     @PostMapping("/chat/join")
-    public ResponseEntity<Map<String, String>> joinRoom(@RequestBody ChatRoomUuidDto dto) {
+    public ResponseEntity<Map<String, Object>> joinRoom(@RequestBody ChatRoomUuidDto dto) {
         User user = userService.getCurrentUser(SecurityContextHolder.getContext().getAuthentication());
         ChatRoom chatRoom = chatRoomService.findByUuid(dto.getRoomId());
 
         boolean result = userChatRoomService.joinChatRoom(user, chatRoom);
         if (result) {
-            return ResponseEntity.ok(Map.of("message", "채팅방에 참가했습니다."));
+            ChatRoomResponseDto roomInfo = new ChatRoomResponseDto(chatRoom);
+            return ResponseEntity.ok(
+                    Map.of("message", "채팅방에 참가했습니다.",
+                            "roomInfo", roomInfo)
+            );
         }
         return ResponseEntity.status(BAD_REQUEST)
                 .body(Map.of("message", "이미 참가된 대화방입니다."));

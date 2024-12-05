@@ -36,24 +36,4 @@ public class Message {
     @Column(name = "timestamp")
     private LocalDateTime timestamp;
 
-//    @Id
-//    @GeneratedValue(strategy = GenerationType.IDENTITY)
-//    private Long id;
-//
-//    @Column(name = "chat_room_id")
-//    private Long chatRoomId;
-//
-//    @Column(name = "sender_id")
-//    private Long senderId;
-//
-//    @Column(name = "username")
-//    private String username;
-//
-//    @Column(name = "message")
-//    private String message;
-//
-//    @Column(name = "timestamp")
-//    private LocalDateTime timestamp;
-
-
 }

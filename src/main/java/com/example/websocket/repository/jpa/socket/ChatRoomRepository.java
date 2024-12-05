@@ -15,5 +15,6 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
     @Query("SELECT cr FROM ChatRoom cr JOIN UserChatRoom ucr ON cr.id = ucr.chatRoom.id WHERE ucr.user.loginId = :loginId AND cr.deleted = false")
     List<ChatRoom> findByUserLoginId(@Param("loginId") String loginId);
 
-    Optional<ChatRoom> findByUuid(String uuid);
+    @Query("SELECT cr FROM ChatRoom cr WHERE cr.uuid = :uuid AND cr.deleted = false")
+    Optional<ChatRoom> findByUuid(@Param("uuid") String uuid);
 }

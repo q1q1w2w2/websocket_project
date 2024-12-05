@@ -37,12 +37,18 @@ public class UserChatRoomService {
         return userChatRoomRepository.findByChatRoom(chatRoom);
     }
 
-    // 대화방 나가기 + todo 대화방에 사람이 1명일 때 나가기를 하면 대화방 자체도 삭제
+    // 대화방 나가기
     public void exitChatRoom(Long chatRoomId, User user) {
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(ChatRoomNotFoundException::new);
         UserChatRoom userChatRoom = userChatRoomRepository.findByUserAndChatRoom(user, chatRoom)
                 .orElseThrow(() -> new RuntimeException("해당 대화방에 참가하지 않은 사용자입니다."));
         userChatRoomRepository.delete(userChatRoom);
+
+        // 대화방에 참가자가 없으면 대화방의 delete 필드 true로 변경(삭제)
+        List<UserChatRoom> findChatRoom = userChatRoomRepository.findByChatRoom(chatRoom);
+        if (findChatRoom.isEmpty()) {
+            chatRoom.delete();
+        }
     }
 }

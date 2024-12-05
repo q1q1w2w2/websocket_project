@@ -66,9 +66,12 @@
 <!-- footer -->
 <div th:replace="fragment/footer :: footer"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.0/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
 <script>
     const accessToken = localStorage.getItem('accessToken');
     const refreshToken = localStorage.getItem('refreshToken');
+    let username = '';
 
     function createChatRoom() {
         const chatRoomName = prompt("생성할 채팅방 이름을 입력하세요:");
@@ -84,10 +87,27 @@
             })
                 .then(response => {
                     if (response.ok) {
-                        window.location.reload();
+                        return response.json();
                     } else {
                         throw new Error('채팅방 생성 실패: ' + response.statusText);
                     }
+                })
+                .then(data => {
+                    // 입장 메시지 전송하기
+                    const socket = new SockJS('/ws/chat');
+                    stompClient = Stomp.over(socket);
+                    stompClient.connect({}, ()=> {
+                        stompClient.send("/app/chat/enter", {},
+                            JSON.stringify({
+                                chatRoomId: data.roomInfo.id,
+                                token: accessToken,
+                                username: username,
+                                message: null
+                            })
+                        );
+                    });
+                    alert("채팅방이 생성되었습니다.");
+                    window.location.href = '/chat?id=' + data.roomInfo.uuid;
                 })
                 .catch(error => {
                     console.error('Error:', error);
@@ -114,18 +134,61 @@
             })
                 .then(response => {
                     if (response.ok) {
-                        window.location.href = '/chat?id=' + id;
+                        return response.json();
                     } else {
                         return response.json().then(data => {
                             throw new Error(data.message);
                         })
                     }
                 })
+                .then(data => {
+                    // 입장 메시지 전송하기
+                    const socket = new SockJS('/ws/chat');
+                    stompClient = Stomp.over(socket);
+                    stompClient.connect({}, ()=> {
+                        stompClient.send("/app/chat/enter", {},
+                            JSON.stringify({
+                                chatRoomId: data.roomInfo.id,
+                                token: accessToken,
+                                username: username,
+                                message: null
+                            })
+                        );
+                    });
+
+                    window.location.href = '/chat?id=' + id;
+                })
                 .catch(error => {
                     console.error(error);
                     alert(error.message);
                 });
         }
+    }
+    function getUserInfo() {
+        fetch('/user/info', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + accessToken
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    window.location.href = '/login';
+                    throw new Error("로그인 후 이용해주세요.");
+                }
+                return response.json();
+            })
+            .then(user => {
+                username = user.username;
+            })
+            .catch(error => {
+                console.error('Error: ', error);
+                alert("로그인 후 이용해주세요.");
+            });
+    }
+
+    window.onload = function () {
+        getUserInfo();
     }
 </script>
 
