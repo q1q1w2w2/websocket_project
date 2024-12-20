@@ -53,7 +53,6 @@ public class UserService {
 
     public User getUserByToken(String token) throws Exception {
         String userId = tokenProvider.extractUserIdFromRefreshToken(token);
-        log.info("userId: {}", userId);
         return userRepository.findByLoginId(userId)
                 .orElseThrow(UserNotFoundException::new);
     }

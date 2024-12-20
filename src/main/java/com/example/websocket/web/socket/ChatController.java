@@ -1,5 +1,6 @@
 package com.example.websocket.web.socket;
 
+import com.example.websocket.aop.LogExecutionTime;
 import com.example.websocket.domain.socket.ChatRoom;
 import com.example.websocket.domain.socket.Message;
 import com.example.websocket.domain.socket.UserChatRoom;
@@ -76,6 +77,7 @@ public class ChatController {
     }
 
     // 채팅방 목록(로그인 성공 시 여기로 이동됨)
+    @LogExecutionTime // aop 활용한 메서드 실행시간 어노테이션
     @GetMapping("/chat/list")
     public String getChatListPage(Model model, HttpSession session) {
         try {
